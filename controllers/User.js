@@ -116,7 +116,7 @@ async function getUserBySalonId(req, res) {
   try {
     let salonId = req.params.salonId;
     let appointments;
-    if (salonId === 'All') {
+    if (salonId === 'All' || salonId === null || salonId === undefined) {
       appointments = await Appointment.find()
         .populate('service')
         .populate('user', '-password')

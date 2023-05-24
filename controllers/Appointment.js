@@ -47,7 +47,7 @@ async function getAppointmentsByTimeAndSalon(req, res) {
     const dateString = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 
     // Filter appointments by date and salon ID
-    if (salonId === 'All') {
+    if (salonId === 'All' || salonId === null || salonId === undefined) {
       filteredAppointments = await Appointment.find({
         time: { $regex: new RegExp(`^${dateString}`) }
       }).populate({path: 'user', select: 'firstName lastName'})
@@ -117,7 +117,7 @@ async function createAppointment(req, res) {
 async function getAppointments(req, res) {
   try {
     const salonId = req.params.salonId;
-    const appointments = salonId === 'All' ?
+    const appointments = (salonId === 'All' || salonId === null || salonId === undefined) ?
       await Appointment.find()
       :
       await Appointment.find({ salonId:salonId });
@@ -136,7 +136,7 @@ async function getAppointmentPerTimeSelect(req, res) {
     const startTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 7); // Start time for time slots (7AM)
     const endTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 21); // End time for time slots (9PM)
     const numTimeSlots = (endTime - startTime) / (60 * 60 * 1000); // Number of time slots (1 hour each)
-    const appointments = salonId === 'All' ? 
+    const appointments = (salonId === 'All' || salonId === null || salonId === undefined) ? 
       await Appointment.find() 
       : 
       await Appointment.find({ salonId: salonId });
@@ -166,7 +166,7 @@ async function getTotalRevenue(req, res) {
     const salonId = req.params.salonId;
 
     // Find all appointments for the salon
-    const appointments = salonId === 'All' ? 
+    const appointments = (salonId === 'All' || salonId === null || salonId === undefined) ? 
       await Appointment.find().populate('service') 
       : 
       await Appointment.find({ salonId: salonId, status: 2 }).populate('service');
