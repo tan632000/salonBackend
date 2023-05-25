@@ -8,7 +8,7 @@ async function getAppointmentsByUserId(req, res) {
       .populate('user', 'firstName lastName photo')
       .populate('stylist', '_id name')
       .populate('service', 'name price')
-      .populate('salonId', '_id address');
+      .populate('salonId', '_id name address');
 
     if (!appointments) {
       return res.status(404).json({ message: 'Appointment not found' });
@@ -23,6 +23,7 @@ async function getAppointmentsByUserId(req, res) {
         time: appointment.time,
         status: appointment.status,
         salonId: appointment.salonId._id,
+        salonName: appointment.salonId.name,
         stylistId: appointment.stylist._id
       };
     }))

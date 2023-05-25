@@ -43,7 +43,7 @@ async function getSalonsNearby(req, res) {
   if (!latitude || !longitude) {
     return res.status(400).json({ success: false, message: "Invalid coordinates" });
   }
-  const maxDistance = 5000; // 5 kilometers
+  const maxDistance = 10000; // 10 kilometers
   try {
     const locations = await Location.find({
       location: {
