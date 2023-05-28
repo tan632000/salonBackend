@@ -1,3 +1,4 @@
+const axios = require('axios');
 const Location = require('../models/Location.js');
 
 async function getSalons(req, res) {
@@ -91,9 +92,16 @@ async function getLocationBySalonName(req, res) {
   }
 }
 
-async function createLocation (req, res) {
+async function createLocation(req, res) {
   const { salonId, name, address, city, latitude, longitude } = req.body;
+  
   try {
+    const realLocation = await getRealPosition(latitude, longitude);
+
+    if (!realLocation || !realLocation.includes(name)) {
+      return res.json({ success: false, message: 'The location is not real' });
+    }
+
     const location = new Location({
       salonId,
       name,
@@ -105,12 +113,30 @@ async function createLocation (req, res) {
 
     await location.save();
 
-    res.json({ success: true, data: location });
+    return res.json({ success: true, data: location });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
-};
+}
+
+async function getRealPosition(latitude, longitude) {
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.GOOGLE_API_KEY}`;
+
+  try {
+    const response = await axios.get(url);
+    const results = response.data.results;
+
+    if (results.length > 0) {
+      const address = results[0].formatted_address;
+      return address;
+    } else {
+      console.log('No results found.');
+    }
+  } catch (error) {
+    console.error('Error retrieving address:', error);
+  }
+}
 
 module.exports = {
   getSalons,
