@@ -60,8 +60,8 @@ async function getStylistBySalonId(req, res) {
 async function getStylistByServiceId(req, res) {
   try {
     const serviceId = req.query.serviceId;
-    const stylists = await Stylist.find({ servicesOffered: serviceId })
-      .select('_id phoneNumber photo name');
+    const stylists = await Stylist.find({ servicesOffered: serviceId, isBusy: false })
+      .select('_id phoneNumber photo name isBusy');
     const stylistData = await Promise.all(stylists.map(async stylist => {
       let avgStylistStars = await getAverageStars(stylist._id);
       return {
@@ -69,7 +69,8 @@ async function getStylistByServiceId(req, res) {
         name: stylist.name,
         photo: stylist.photo,
         phoneNumber: stylist.phoneNumber,
-        avgStylistStars: avgStylistStars ? avgStylistStars.avgStylistStars : 5
+        avgStylistStars: avgStylistStars ? avgStylistStars.avgStylistStars : 5,
+        isBusy: stylist.isBusy
       };
     }));
     res.status(200).json(stylistData);
@@ -131,6 +132,7 @@ async function deleteStylist(req, res) {
   }
   res.send({ message: 'Stylist deleted successfully' });
 }
+
 module.exports = {
   getStylistBySalonId,
   createStylist,

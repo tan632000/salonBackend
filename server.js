@@ -10,6 +10,7 @@ const appointmentRoutes = require("./routes/appointment.js");
 const salonRoutes = require("./routes/salon.js");
 const stylistRoutes = require("./routes/stylist.js");
 const commentRoutes = require("./routes/comment.js");
+const registeredSalonRoutes = require("./routes/registered.js");
 
 const app = express();
 app.use(cors())
@@ -36,6 +37,7 @@ app.use('/api/v1/salons', salonRoutes);
 app.use('/api/v1/stylists', stylistRoutes);
 app.use('/api/v1/locations', locationRoutes);
 app.use('/api/v1/comments', commentRoutes);
+app.use('/api/v1/registered', registeredSalonRoutes);
 
 app.listen(8600, () => {
   connect();

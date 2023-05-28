@@ -23,7 +23,11 @@ const StylistSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId, 
             ref: 'Service'
         },
-    ]
+    ],
+    isBusy: {
+        type: Boolean,
+        default: false
+    }
 });
 
 module.exports = mongoose.model("Stylist", StylistSchema);

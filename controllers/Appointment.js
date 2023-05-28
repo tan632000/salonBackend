@@ -1,5 +1,7 @@
 const { default: mongoose } = require('mongoose');
 const Appointment = require('../models/Appointment.js');
+const RegisteredSalon = require('../models/RegisteredSalon.js');
+const Stylist = require('../models/Stylist.js');
 
 // Get all appointments by userId
 async function getAppointmentsByUserId(req, res) {
@@ -105,6 +107,7 @@ async function createAppointment(req, res) {
 
   try {
     await appointment.save();
+    await Stylist.updateOne({isBusy: true});
     return res.status(201).json({
       appointment
     });
@@ -173,10 +176,11 @@ async function getTotalRevenue(req, res) {
       await Appointment.find({ salonId: salonId, status: 2 }).populate('service');
 
     // Calculate the total revenue based on the prices of the services in each appointment
-    const totalRevenue = appointments.reduce((total, appointment) => {
+    let totalRevenue = appointments.reduce((total, appointment) => {
       return total + appointment.service.price;
     }, 0);
-
+    const listVerifySalon = await RegisteredSalon.find({verified: true});
+    totalRevenue += 1000000 * listVerifySalon.length
     res.send({ totalRevenue });
   } catch (error) {
     console.error(error);
@@ -186,10 +190,25 @@ async function getTotalRevenue(req, res) {
 
 async function updateAppointment(req, res) {
   try {
-    await Appointment.findByIdAndUpdate({_id: req.params.id}, {status: req.params.status}, { new: true });
+    const status = parseInt(req.params.status); // Parse the string to an integer
+
+    const appointment = await Appointment.findByIdAndUpdate(
+      { _id: req.params.id },
+      { status },
+      { new: true }
+    );
+
+    const stylist = await Stylist.findByIdAndUpdate(
+      { _id: appointment.stylistId },
+      { isBusy: status === 1 ? true : false },
+      { new: true }
+    );
+
     res.send({
-      message: 'Success update'
-    })
+      message: 'Success update',
+      appointment,
+      stylist
+    });
   } catch (error) {
     console.error(error);
     res.status(500).send('Server Error');
