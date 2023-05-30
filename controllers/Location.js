@@ -97,7 +97,7 @@ async function createLocation(req, res) {
   
   try {
     const realLocation = await getRealPosition(latitude, longitude);
-
+    console.log(realLocation);
     if (!realLocation || !realLocation.includes(name)) {
       return res.json({ success: false, message: 'The location is not real' });
     }
@@ -126,7 +126,6 @@ async function getRealPosition(latitude, longitude) {
   try {
     const response = await axios.get(url);
     const results = response.data.results;
-
     if (results.length > 0) {
       const address = results[0].formatted_address;
       return address;
