@@ -9,7 +9,8 @@ const {
   getTotalRevenue, 
   getTopServices, 
   getStatisticByAge, 
-  getStatisticByCity 
+  getStatisticByCity,
+  updateTimeAppointment
 } = require('../controllers/Appointment.js');
 
 const router = express.Router();
@@ -41,7 +42,11 @@ router.get('/:salonId/customers-by-city', getStatisticByCity);
 // Create new appointment
 router.post('/', createAppointment);
 
+// Update time appointment
+router.patch('/:id', updateTimeAppointment);
+
 // Update appointment status
 router.patch('/:id/:status', updateAppointment);
+
 
 module.exports = router;

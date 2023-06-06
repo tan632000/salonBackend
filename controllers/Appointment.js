@@ -410,6 +410,39 @@ async function getStatisticByCity(req, res) {
   }
 }
 
+async function updateTimeAppointment(req, res) {
+  try {
+    const {id} = req.params; // Parse the string to an integer
+    const appointments = await Appointment.find(
+      { _id: id }
+    );
+    const appointment = appointments[0];
+    if (appointment.status !== 1) {
+      return res.send({
+        message: 'Bạn đã hoàn thành dịch vụ này. Mời bạn đăt lịch khác',
+      });
+    }
+    const now = Date.now();
+    const updatedTime = new Date(req.body.time).getTime();
+
+    if (updatedTime < now) {
+      return res.send({
+        message: 'Thời gian cập nhật phải lớn hơn thời gian hiện tại.',
+      });
+    }
+
+    appointment.time = req.body.time;
+    await appointment.save();
+    return res.send({
+      appointment,
+      message: 'Cập nhật thời gian đặt lịch thành công.',
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server Error');
+  }
+}
+
 
 module.exports = {
   getAppointmentsByTimeAndSalon,
@@ -421,5 +454,6 @@ module.exports = {
   updateAppointment,
   getTopServices,
   getStatisticByAge,
-  getStatisticByCity
+  getStatisticByCity,
+  updateTimeAppointment
 };
