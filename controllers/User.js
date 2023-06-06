@@ -229,6 +229,11 @@ async function getRegisteredSalon(req, res) {
 
 async function verifySalonRegistered(req, res) {
   try {
+    if (req.params.id === "null" || registeredSalon.salonId === "null") {
+      return res.send({
+        message: "Lam on nhap dung salon"
+      })
+    }
     const registeredSalon = await RegisterSalon.findByIdAndUpdate(
       { _id: req.params.id },
       { verified: req.body.verified },

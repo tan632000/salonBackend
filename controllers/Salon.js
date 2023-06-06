@@ -24,6 +24,9 @@ const getAverageStars = async function(salonId) {
 async function getSalonByUserId(req, res) {
   const ownerId = req.params.ownerId;
   try {
+    if (ownerId === "null" || ownerId === null || ownerId === undefined) {
+      return res.status(404).send("Salon not found");
+    }
     const salon = await Salon.findOne({ ownerId });
     if (!salon) {
       return res.status(404).send("Salon not found");

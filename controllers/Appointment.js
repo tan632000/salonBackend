@@ -170,7 +170,7 @@ async function getTotalRevenue(req, res) {
     const salonId = req.params.salonId;
 
     // Find all appointments for the salon
-    const appointments = (salonId === 'All' || salonId === null || salonId === undefined) ? 
+    const appointments = (salonId === 'All' || salonId === null || salonId === undefined || salonId === "null") ? 
       await Appointment.find().populate('service') 
       : 
       await Appointment.find({ salonId: salonId, status: 2 }).populate('service');
