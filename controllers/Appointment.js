@@ -92,24 +92,65 @@ async function getAppointmentsByTimeAndSalon(req, res) {
 
 // Create a new appointment
 async function createAppointment(req, res) {
-  const {salonId, stylistId, serviceId, userId, time, note, duration} = req.body
+  const { salonId, stylistId, serviceId, userId, time, note, duration } = req.body;
   const updatedTime = time.substring(0, 19);
-  const appointment = new Appointment({
-    salonId,
-    stylistId,
-    serviceId,
-    userId,
-    time: updatedTime,
-    note,
-    duration,
-    status: 1
-  });
+  const appointmentStartTime = new Date(updatedTime);
+  const appointmentEndTime = new Date(appointmentStartTime.getTime() + duration * 60 * 60 * 1000);
+
+  // Check if the appointment time is within the range of 8am to 6pm
+  const appointmentHour = appointmentStartTime.getHours();
+  if (appointmentHour < 8 || appointmentHour >= 18) {
+    return res.status(400).json({
+      error: "Vui lòng đặt lịch trong khoảng thời gian từ 8 đến 18 giờ. Mời bạn chọn lại thời gian.",
+    });
+  }
 
   try {
+    // Check if there are any overlapping appointments for the stylist
+    const existingAppointment = await Appointment.findOne({
+      stylistId,
+      $or: [
+        {
+          time: { $lte: appointmentEndTime },
+          $and: [
+            { time: { $gte: updatedTime } },
+            { time: { $lt: appointmentStartTime } },
+          ],
+        },
+        {
+          time: { $gte: updatedTime },
+          $and: [
+            { time: { $lt: appointmentEndTime } },
+            { time: { $gt: appointmentStartTime } },
+          ],
+        },
+      ],
+    });
+
+    if (existingAppointment) {
+      // The stylist is not available during the requested time
+      return res.status(400).json({
+        error: "Stylist chưa hoàn thành dịch vụ vào khoảng thời gian này. Vui lòng cập nhật lại thời gian.",
+      });
+    }
+
+    // Create a new appointment
+    const appointment = new Appointment({
+      salonId,
+      stylistId,
+      serviceId,
+      userId,
+      time: updatedTime,
+      note,
+      duration,
+      status: 1,
+    });
+
     await appointment.save();
-    await Stylist.updateOne({isBusy: true});
+    await Stylist.updateOne({ isBusy: true });
+
     return res.status(201).json({
-      appointment
+      appointment,
     });
   } catch (error) {
     console.error(error);
