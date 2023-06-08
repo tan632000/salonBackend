@@ -1,9 +1,9 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
 const cors = require("cors");
 const path = require("path");
-const bodyParser = require('body-parser')
+require('./dotenvConfig');
+const bodyParser = require('body-parser');
 const userRoutes = require("./routes/user.js");
 const serviceRoutes = require("./routes/service.js");
 const locationRoutes = require("./routes/location.js");
@@ -14,21 +14,22 @@ const commentRoutes = require("./routes/comment.js");
 const registeredSalonRoutes = require("./routes/registered.js");
 
 const app = express();
-app.use(cors())
-app.use(bodyParser.urlencoded({extended: true}))
-dotenv.config();
+app.use(cors());
+app.use(bodyParser.urlencoded({ extended: true }));
 mongoose.set('strictQuery', true);
 
 const connect = () => {
   mongoose
     .connect(process.env.MONGO)
     .then(() => {
-      console.log("database connnected");
+      console.log("Database connected");
     })
     .catch((err) => {
       throw err;
     });
 };
+
+connect(); // Call the connect function to establish the database connection
 
 app.use(express.json());
 app.use('/api/v1/users', userRoutes);
