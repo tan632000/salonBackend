@@ -229,7 +229,7 @@ async function getRegisteredSalon(req, res) {
 
 async function verifySalonRegistered(req, res) {
   try {
-    if (req.params.id === "null" || registeredSalon.salonId === "null") {
+    if (req.params.id === "null") {
       return res.send({
         message: "Lam on nhap dung salon"
       })
