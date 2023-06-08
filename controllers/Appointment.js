@@ -467,7 +467,7 @@ async function updateTimeAppointment(req, res) {
     const appointmentHour = appointmentStartTime.getHours();
     if ((appointmentHour < 7 && appointmentHour > 0) || (appointmentHour < 15 && appointmentHour >= 8)) {
       return res.status(400).json({
-        error: "Vui lòng đặt lịch trong khoảng thời gian từ 8 đến 18 giờ. Mời bạn chọn lại thời gian.",
+        error: "Please make an appointment between 8am and 6pm. Please choose the time again.",
       });
     }
 
