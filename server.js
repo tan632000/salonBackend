@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const path = require("path");
 const bodyParser = require('body-parser')
 const userRoutes = require("./routes/user.js");
 const serviceRoutes = require("./routes/service.js");
@@ -38,6 +39,14 @@ app.use('/api/v1/stylists', stylistRoutes);
 app.use('/api/v1/locations', locationRoutes);
 app.use('/api/v1/comments', commentRoutes);
 app.use('/api/v1/registered', registeredSalonRoutes);
+
+// Serve the static files from the React app
+app.use(express.static(path.join(__dirname, "../salon-web/build")));
+
+// Catch all other routes and serve the React app's index.html file
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../salon-web/build", "index.html"));
+});
 
 app.listen(8600, () => {
   connect();
