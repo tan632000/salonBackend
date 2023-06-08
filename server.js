@@ -48,6 +48,8 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../salon-web/build", "index.html"));
 });
 
-app.listen(8600, () => {
-  connect();
+// Start the server
+const port = process.env.PORT || 8600;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
