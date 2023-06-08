@@ -95,11 +95,13 @@ async function createAppointment(req, res) {
   const { salonId, stylistId, serviceId, userId, time, note, duration } = req.body;
   const updatedTime = time.substring(0, 19);
   const appointmentStartTime = new Date(updatedTime);
-  const appointmentEndTime = new Date(appointmentStartTime.getTime() + duration * 60 * 60 * 1000);
+  appointmentStartTime.setHours(appointmentStartTime.getHours() + 7);
+  const appointmentEndTime = new Date(appointmentStartTime.getTime() + (duration + 0.5) * 60 * 60 * 1000);
+  appointmentEndTime.setHours(appointmentEndTime.getHours());
 
   // Check if the appointment time is within the range of 8am to 6pm
   const appointmentHour = appointmentStartTime.getHours();
-  if (appointmentHour < 8 || appointmentHour >= 18) {
+  if ((appointmentHour < 7 && appointmentHour > 0) || (appointmentHour < 15 && appointmentHour >= 8)) {
     return res.status(400).json({
       error: "Vui lòng đặt lịch trong khoảng thời gian từ 8 đến 18 giờ. Mời bạn chọn lại thời gian.",
     });
@@ -111,22 +113,13 @@ async function createAppointment(req, res) {
       stylistId,
       $or: [
         {
-          time: { $lte: appointmentEndTime },
-          $and: [
-            { time: { $gte: updatedTime } },
-            { time: { $lt: appointmentStartTime } },
-          ],
+          time: { $lt: appointmentEndTime.toISOString(), $gte: appointmentStartTime.toISOString() },
         },
         {
-          time: { $gte: updatedTime },
-          $and: [
-            { time: { $lt: appointmentEndTime } },
-            { time: { $gt: appointmentStartTime } },
-          ],
+          time: { $lt: appointmentStartTime.toISOString(), $gte: new Date(appointmentStartTime.getTime() - (duration + 0.5) * 60 * 60 * 1000).toISOString() },
         },
       ],
     });
-
     if (existingAppointment) {
       // The stylist is not available during the requested time
       return res.status(400).json({
@@ -453,37 +446,67 @@ async function getStatisticByCity(req, res) {
 
 async function updateTimeAppointment(req, res) {
   try {
-    const {id} = req.params; // Parse the string to an integer
-    const appointments = await Appointment.find(
-      { _id: id }
-    );
+    const { id } = req.params; // Parse the string to an integer
+    const appointments = await Appointment.find({ _id: id });
     const appointment = appointments[0];
+
     if (appointment.status !== 1) {
       return res.send({
-        message: 'Bạn đã hoàn thành dịch vụ này. Mời bạn đăt lịch khác',
+        message: 'You have already completed this service. Please schedule a different appointment.',
       });
     }
+
     const now = Date.now();
-    const updatedTime = new Date(req.body.time).getTime();
+    const updatedTime = req.body.time.substring(0, 19);
+    const appointmentStartTime = new Date(updatedTime);
+    appointmentStartTime.setHours(appointmentStartTime.getHours() + 7);
+    const appointmentEndTime = new Date(appointmentStartTime.getTime() + (appointment.duration + 0.5) * 60 * 60 * 1000);
+    appointmentEndTime.setHours(appointmentEndTime.getHours());
+  
+    // Check if the appointment time is within the range of 8am to 6pm
+    const appointmentHour = appointmentStartTime.getHours();
+    if ((appointmentHour < 7 && appointmentHour > 0) || (appointmentHour < 15 && appointmentHour >= 8)) {
+      return res.status(400).json({
+        error: "Vui lòng đặt lịch trong khoảng thời gian từ 8 đến 18 giờ. Mời bạn chọn lại thời gian.",
+      });
+    }
 
     if (updatedTime < now) {
       return res.send({
-        message: 'Thời gian cập nhật phải lớn hơn thời gian hiện tại.',
+        message: 'The update time must be greater than the current time.',
       });
     }
 
-    appointment.time = req.body.time;
+    // Check if there are any overlapping appointments for the stylist
+    const overlappingAppointments = await Appointment.findOne({
+      stylistId: appointment.stylistId,
+      $or: [
+        {
+          time: { $lt: appointmentEndTime.toISOString(), $gte: appointmentStartTime.toISOString() },
+        },
+        {
+          time: { $lt: appointmentStartTime.toISOString(), $gte: new Date(appointmentStartTime.getTime() - (appointment.duration + 0.5) * 60 * 60 * 1000).toISOString() },
+        },
+      ],
+    });
+    if (overlappingAppointments) {
+      return res.status(400).json({
+        error: 'The stylist is not available during the requested time. Please update the time.',
+      });
+    }
+
+    appointment.time = updatedTime;
     await appointment.save();
+
     return res.send({
       appointment,
-      message: 'Cập nhật thời gian đặt lịch thành công.',
+      message: 'Appointment time updated successfully.',
     });
   } catch (error) {
     console.error(error);
     res.status(500).send('Server Error');
   }
 }
-
 
 module.exports = {
   getAppointmentsByTimeAndSalon,
