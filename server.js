@@ -40,14 +40,15 @@ app.use('/api/v1/locations', locationRoutes);
 app.use('/api/v1/comments', commentRoutes);
 app.use('/api/v1/registered', registeredSalonRoutes);
 
+const buildPath = path.join(__dirname, "../salon-web/build");
+
 // Serve the static files from the React app
-app.use(express.static(path.join(__dirname, "../salon-web/build")));
+app.use(express.static(buildPath));
 
 // Catch all other routes and serve the React app's index.html file
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../salon-web/build", "index.html"));
+  res.sendFile(path.join(buildPath, "index.html"));
 });
-
 // Start the server
 const port = process.env.PORT || 8600;
 app.listen(port, () => {
