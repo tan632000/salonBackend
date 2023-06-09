@@ -480,7 +480,7 @@ async function updateTimeAppointment(req, res) {
       });
     }
 
-    if (updatedTime < now) {
+    if (appointmentStartTime < now) {
       return res.send({
         message: 'The update time must be greater than the current time.',
       });
@@ -489,6 +489,7 @@ async function updateTimeAppointment(req, res) {
     // Check if there are any overlapping appointments for the stylist
     const overlappingAppointments = await Appointment.findOne({
       stylistId: appointment.stylistId,
+      _id: { $ne: appointment._id },
       $or: [
         {
           time: { $lt: appointmentEndTime.toISOString(), $gte: appointmentStartTime.toISOString() },
