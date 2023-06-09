@@ -100,12 +100,13 @@ async function createAppointment(req, res) {
   appointmentEndTime.setHours(appointmentEndTime.getHours());
 
    // Check if the appointment time is earlier than the current time
-   const currentTime = new Date();
-   if (appointmentStartTime < currentTime) {
-     return res.status(400).json({
-       error: "Thời gian đặt lịch phải là trong tương lai. Vui lòng chọn lại thời gian.",
-     });
-   }
+  const currentTime = new Date();
+  currentTime.setHours(currentTime.getHours() + 7);
+  if (appointmentStartTime < currentTime) {
+    return res.status(400).json({
+      error: "Thời gian đặt lịch phải là trong tương lai. Vui lòng chọn lại thời gian.",
+    });
+  }
 
   // Check if the appointment time is within the range of 8am to 6pm
   const appointmentHour = appointmentStartTime.getHours();
